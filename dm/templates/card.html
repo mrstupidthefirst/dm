@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte d'Accès</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --navy2: #0f1f3d;
+            --blue: #1a3a6e;
+            --accent: #e8a020;
+            --accent2: #d4901c;
+            --light: #f4f6fa;
+            --border: #d0d8e8;
+            --text: #1a2540;
+            --muted: #6b7a99;
+            --approve-bg: #e6f4ee;
+            --approve-txt: #1a6640;
+            --approve-dot: #28a96a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255, 255, 255, .025) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255, 255, 255, .025) 40px);
+        }
+
+        .topbar {
+            background: var(--navy2);
+            border-bottom: 2px solid var(--accent);
+            padding: 0 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin: -40px -20px 40px -20px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--accent);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .topbar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .topbar-nav a {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .55);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 2px;
+            transition: all .2s;
+        }
+
+        .topbar-nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, .07);
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, .4);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 28px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 12px;
+            letter-spacing: -.01em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: var(--approve-bg);
+            color: var(--approve-txt);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .card-content {
+            margin-bottom: 28px;
+        }
+
+        .field {
+            margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light);
+        }
+
+        .field:last-child {
+            border-bottom: none;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+        }
+
+        .field-value {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .qr-section {
+            text-align: center;
+            margin: 28px 0;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 6px;
+        }
+
+        .qr-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .qr-code {
+            display: inline-block;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .qr-code img {
+            max-width: 180px;
+            height: auto;
+            display: block;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'IBM Plex Sans', sans-serif;
+            transition: all .2s;
+        }
+
+        .btn-print {
+            background: var(--accent);
+            color: var(--navy);
+        }
+
+        .btn-print:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(232, 160, 32, .3);
+        }
+
+        .btn-back {
+            background: var(--light);
+            color: var(--blue);
+            border: 1px solid var(--border);
+        }
+
+        .btn-back:hover {
+            background: var(--border);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .topbar {
+                display: none;
+            }
+
+            .card-actions {
+                display: none;
+            }
+
+            .card {
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px 12px;
+            }
+
+            .topbar {
+                margin: -20px -12px 20px -12px;
+                padding: 0 16px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .field {
+                grid-template-columns: 100px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="topbar">
+        <div class="topbar-brand">
+            <div class="topbar-icon">⚓</div>
+            <span class="topbar-title">PortGate</span>
+        </div>
+        <div class="topbar-nav">
+            <a href="{{ url_for('home') }}">Accueil</a>
+            <a href="{{ url_for('user_demandes') }}">Mes Demandes</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Carte d'Accès Provisoire</h1>
+                <span class="status-badge">✓ APPROUVÉE</span>
+            </div>
+
+            <div class="card-content">
+                <div class="field">
+                    <span class="field-label">N° Demande</span>
+                    <span class="field-value">#{{ demande[0] }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Nom & Prénom</span>
+                    <span class="field-value">{{ demande[1] }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Entité</span>
+                    <span class="field-value">{{ demande[2] }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Début</span>
+                    <span class="field-value">{{ demande[3] }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Fin</span>
+                    <span class="field-value">{{ demande[4] }}</span>
+                </div>
+                <div class="field">
+                    <span class="field-label">Statut</span>
+                    <span class="field-value">{{ demande[5] }}</span>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-label">Code d'Accès</div>
+                <div class="qr-code">
+                    <img src="{{ qr_url }}" alt="QR Code d'approbation">
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="btn btn-print" onclick="handlePrint(event)">🖨 Imprimer la Carte</button>
+                <button class="btn btn-back" onclick="window.history.back()">← Retour</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle print
+        function handlePrint(event) {
+            event.preventDefault();
+            setTimeout(function() {
+                window.print();
+            }, 100);
+        }
+    </script>
+</body>
+</html>

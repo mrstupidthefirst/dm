@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; color: #16203d; }
+        .top { background: #0f1f3d; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .top a { color: #e8a020; text-decoration: none; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+        .panel { background: #fff; border-radius: 8px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .flash { background: #e8f7ea; color: #1a6b3f; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #e2e7f0; text-align: left; padding: 9px; font-size: 14px; vertical-align: top; }
+        th { background: #f0f4fb; }
+        .btn-ok { background: #16824a; color: #fff; border: none; padding: 7px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-no { background: #b72222; color: #fff; border: none; padding: 7px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
+        .mini { font-size: 12px; color: #5e6b89; }
+        .status { font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="top">
+    <div>Admin: {{ username }} | Entite: {{ admin_entite }}</div>
+    <a href="{{ url_for('logout') }}">Se deconnecter</a>
+</div>
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="panel">
+        <h2>Demandes de votre entite</h2>
+        <p class="mini">Seules les demandes de l'entite admin sont affichees.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Demandeur</th>
+                    <th>Details</th>
+                    <th>Periode</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for d in demandes %}
+                <tr>
+                    <td>{{ d[0] }}</td>
+                    <td>{{ d[1] }}<br><span class="mini">{{ d[11] }}</span></td>
+                    <td>
+                        Type: {{ d[3] }}<br>
+                        Tel: {{ d[2] }}<br>
+                        Raison: {{ d[5] }}<br>
+                        Piece: {{ d[6] }}
+                    </td>
+                    <td>{{ d[7] }} -> {{ d[8] }}</td>
+                    <td class="status">{{ d[9] }}</td>
+                    <td>
+                        {% if d[9] == 'en attente' %}
+                            <form method="POST" action="{{ url_for('update_demande_status', demande_id=d[0]) }}" style="display:inline;">
+                                <input type="hidden" name="statut" value="approved">
+                                <button class="btn-ok" type="submit">Approuver</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('update_demande_status', demande_id=d[0]) }}" style="display:inline;">
+                                <input type="hidden" name="statut" value="rejected">
+                                <input type="hidden" name="motif_refus" value="Refusee par l'administration">
+                                <button class="btn-no" type="submit">Refuser</button>
+                            </form>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">Aucune demande pour cette entite.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
