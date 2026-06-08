@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Demandes</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy:#0a1628; --navy2:#0f1f3d; --accent:#e8a020; --text:#1a2540; --muted:#6b7a99; --border:#d0d8e8; --light:#f4f6fa; }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'IBM Plex Sans',sans-serif;background:var(--navy);min-height:100vh;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.025) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.025) 40px)}
+        .topbar{height:58px;background:var(--navy2);border-bottom:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between;padding:0 22px;color:#fff}
+        .topbar a{color:var(--accent);text-decoration:none;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+        .page{max-width:1100px;margin:26px auto;padding:0 14px}
+        h2{color:#fff;font-size:24px}
+        p{color:rgba(255,255,255,.5);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-top:5px}
+        .table-card{margin-top:16px;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 8px 38px rgba(0,0,0,.45)}
+        table{width:100%;border-collapse:collapse}
+        thead tr{background:#0f1f3d}
+        th{padding:12px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;font-size:10px;text-align:left}
+        td{padding:12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text)}
+        .status{font-weight:700}
+        .status.en_attente{color:#9a6a00}
+        .status.approuve{color:#0d7a40}
+        .status.rejete{color:#b71f1f}
+        .btn-card{color:#1a3a6e;font-weight:700;text-decoration:none}
+        .empty{padding:20px;color:var(--muted)}
+        .flash{padding:10px;border-radius:3px;margin:10px 0;background:#d6f0e3;color:#1a6640}
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div>Utilisateur: {{ username }}</div>
+        <div>
+            <a href="{{ url_for('user_dashboard') }}">Accueil</a>
+            <a href="{{ url_for('user_cdemande') }}" style="margin-left:14px">Nouvelle demande</a>
+            <a href="{{ url_for('logout') }}" style="margin-left:14px">Se deconnecter</a>
+        </div>
+    </div>
+    <div class="page">
+        <h2>Mes demandes</h2>
+        <p>Historique de vos demandes d'entree</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Entite</th>
+                        <th>Raison</th>
+                        <th>Periode</th>
+                        <th>Statut</th>
+                        <th>Carte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for d in demandes %}
+                    <tr>
+                        <td>{{ d.id }}</td>
+                        <td>{{ d.entite_accueil }}</td>
+                        <td>{{ d.raison_entree }}</td>
+                        <td>{{ d.date_debut }} -> {{ d.date_fin }}</td>
+                        <td class="status {{ d.statut|replace(' ', '_') }}">{{ d.statut }}</td>
+                        <td>
+                            {% if d.statut == 'approuve' %}
+                                <a class="btn-card" href="{{ url_for('user_card', demande_id=d.id) }}" target="_blank">Imprimer</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="empty" colspan="6">Aucune demande.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if has_new_approval %}
+    <script>
+        alert("Votre demande a ete approuvee. Vous pouvez imprimer votre carte avec QR code.");
+    </script>
+    {% endif %}
+</body>
+</html>

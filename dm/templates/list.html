@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortGate — Liste des Demandes</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0a1628;
+            --navy2: #0f1f3d;
+            --blue: #1a3a6e;
+            --accent: #e8a020;
+            --accent2: #d4901c;
+            --light: #f4f6fa;
+            --border: #d0d8e8;
+            --text: #1a2540;
+            --muted: #6b7a99;
+            --pending-bg: #fff8e6;
+            --pending-txt: #92600a;
+            --pending-dot: #e8a020;
+            --approve-bg: #e6f4ee;
+            --approve-txt: #1a6640;
+            --approve-dot: #28a96a;
+            --reject-bg: #fde8e8;
+            --reject-txt: #991b1b;
+            --reject-dot: #e53535;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--navy);
+            min-height: 100vh;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255, 255, 255, .025) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255, 255, 255, .025) 40px);
+        }
+
+        .topbar {
+            background: var(--navy2);
+            border-bottom: 2px solid var(--accent);
+            padding: 0 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--accent);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .topbar-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .topbar-nav a {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .55);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 2px;
+            transition: all .2s;
+        }
+
+        .topbar-nav a:hover {
+            color: white;
+            background: rgba(255, 255, 255, .07);
+        }
+
+        .topbar-nav a.active {
+            color: var(--accent);
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 36px 20px 60px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -.01em;
+        }
+
+        .page-header p {
+            font-size: 12.5px;
+            color: rgba(255, 255, 255, .4);
+            margin-top: 4px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .btn-new {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: var(--navy);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 3px;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .btn-new:hover {
+            background: var(--accent2);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(232, 160, 32, .3);
+        }
+
+        .stats {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 3px;
+            padding: 14px 22px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-card .stat-num {
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            font-family: 'IBM Plex Mono', monospace;
+            line-height: 1;
+        }
+
+        .stat-card .stat-lbl {
+            font-size: 10.5px;
+            color: rgba(255, 255, 255, .4);
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            margin-top: 5px;
+        }
+
+        .stat-card.accent .stat-num {
+            color: var(--accent);
+        }
+
+        .stat-card.green .stat-num {
+            color: #28a96a;
+        }
+
+        .stat-card.red .stat-num {
+            color: #e53535;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input {
+            padding: 9px 14px;
+            font-size: 13px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 3px;
+            color: white;
+            outline: none;
+            transition: all .2s;
+            min-width: 220px;
+        }
+
+        .filter-input::placeholder {
+            color: rgba(255, 255, 255, .3);
+        }
+
+        .filter-input:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .filter-select {
+            padding: 9px 34px 9px 14px;
+            font-size: 13px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 3px;
+            color: white;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            transition: all .2s;
+        }
+
+        .filter-select option {
+            background: var(--navy2);
+            color: white;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent);
+        }
+
+        .filter-count {
+            margin-left: auto;
+            font-size: 11.5px;
+            color: rgba(255, 255, 255, .35);
+            font-family: 'IBM Plex Mono', monospace;
+            white-space: nowrap;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: 4px;
+            overflow-x: auto;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .4);
+            min-height: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+
+        thead tr {
+            background: var(--navy);
+        }
+
+        thead th {
+            padding: 13px 16px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .5);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        thead th:first-child {
+            padding-left: 20px;
+        }
+
+        thead th:last-child {
+            padding-right: 20px;
+            text-align: center;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .15s;
+            animation: fadeRow .3s ease both;
+        }
+
+        @keyframes fadeRow {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #f7f9fd;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            font-size: 13px;
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        tbody td:first-child {
+            padding-left: 20px;
+        }
+
+        tbody td:last-child {
+            padding-right: 20px;
+        }
+
+        .req-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--blue);
+        }
+
+        .name {
+            font-weight: 600;
+        }
+
+        .type-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            background: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .date-range {
+            font-size: 11px;
+            font-family: 'IBM Plex Mono', monospace;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .date-range span {
+            color: var(--muted);
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: 'IBM Plex Sans', sans-serif;
+            white-space: nowrap;
+        }
+
+        .btn-view {
+            background: var(--light);
+            color: var(--blue);
+            border: 1px solid var(--border);
+        }
+
+        .btn-view:hover {
+            background: var(--border);
+        }
+
+        .btn-approve {
+            background: #28a96a;
+            color: white;
+            border: 1px solid #28a96a;
+        }
+
+        .btn-approve:hover {
+            background: #1a6640;
+        }
+
+        .btn-reject {
+            background: #e53535;
+            color: white;
+            border: 1px solid #e53535;
+        }
+
+        .btn-reject:hover {
+            background: #991b1b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .status-pending {
+            background: var(--pending-bg);
+            color: var(--pending-txt);
+        }
+
+        .status-approved {
+            background: var(--approve-bg);
+            color: var(--approve-txt);
+        }
+
+        .status-rejected {
+            background: var(--reject-bg);
+            color: var(--reject-txt);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 42px;
+            margin-bottom: 14px;
+            opacity: .5;
+        }
+
+        .empty h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty p {
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 70px 20px;
+            color: var(--muted);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--light);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 22, 40, .8);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .6);
+            animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.96) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--navy);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .modal-header h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, .5);
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 2px 6px;
+            border-radius: 2px;
+            transition: all .15s;
+        }
+
+        .modal-close:hover {
+            color: white;
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .detail-item {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            font-size: 13.5px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .detail-value.mono {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .flash-bar {
+            padding: 12px 36px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .flash-success {
+            background: #d6f0e3;
+            color: #1a6640;
+            border-bottom: 1px solid #b2dfc6;
+        }
+
+        .flash-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-bottom: 1px solid #f5b8b8;
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0 16px;
+            }
+            .page {
+                padding: 24px 12px 48px;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="topbar">
+        <div class="topbar-brand">
+            <div class="topbar-icon">⚓</div>
+            <span class="topbar-title">PortGate</span>
+        </div>
+        <div class="topbar-nav">
+            <a href="{{ url_for('home') }}">Accueil</a>
+            <a href="{{ url_for('home') }}" class="active">Connexion</a>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-bar flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2>Liste des demandes</h2>
+                <p>Gestion des autorisations d'accès provisoires · Port de Casablanca</p>
+            </div>
+            <button onclick="exportToExcel()" class="btn-new" style="background:#1a3a6e; color:white; border:none; cursor:pointer;">
+                ⬇ Télécharger Excel
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-num" id="totalCount">0</div>
+                <div class="stat-lbl">Total</div>
+            </div>
+            <div class="stat-card accent">
+                <div class="stat-num" id="pendingCount">0</div>
+                <div class="stat-lbl">En attente</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-num" id="approvedCount">0</div>
+                <div class="stat-lbl">Approuvées</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-num" id="rejectedCount">0</div>
+                <div class="stat-lbl">Refusées</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <input class="filter-input" id="searchInput" type="text" placeholder="🔍 Rechercher par nom, numéro…" onkeyup="filterTable()">
+            <select class="filter-select" id="statusFilter" onchange="filterTable()">
+                <option value="">Tous les statuts</option>
+                <option value="pending">En attente</option>
+                <option value="approved">Approuvée</option>
+                <option value="rejected">Refusée</option>
+            </select>
+            <select class="filter-select" id="typeFilter" onchange="filterTable()">
+                <option value="">Tous les types</option>
+                <option value="personne_physique">Personne physique</option>
+                <option value="personne_morale">Personne morale</option>
+                <option value="transporteur">Transporteur</option>
+                <option value="tour_operateur">Tour opérateur</option>
+            </select>
+            <span class="filter-count" id="rowCount"></span>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div id="loadingIndicator" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Chargement des données...</p>
+            </div>
+            <div id="tableContainer" style="display: none;">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>N° demande</th>
+                            <th>Nom et Prénom</th>
+                            <th>Téléphone</th>
+                            <th>Type</th>
+                            <th>Entité d'accueil</th>
+                            <th>Raison d'entrée</th>
+                            <th>Pièce d'identité</th>
+                            <th>Période</th>
+                            <th>Créé le</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty" style="display: none;">
+                <div class="empty-icon">📋</div>
+                <h3>Aucune demande pour l'instant</h3>
+                <p>Les demandes soumises via le formulaire apparaîtront ici.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Détail de la demande</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDemandes = [];
+        let filteredDemandes = [];
+
+        // Load data via AJAX
+        async function loadDemandes() {
+            try {
+                const response = await fetch('/api/demandes');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allDemandes = result.data;
+                    filteredDemandes = [...allDemandes];
+                    renderTable();
+                    updateStats();
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showError('Erreur de chargement des données');
+            }
+        }
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if (filteredDemandes.length === 0) {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+            
+            filteredDemandes.forEach(demande => {
+                const row = tbody.insertRow();
+                row.setAttribute('data-id', demande.id);
+                row.setAttribute('data-type', demande.type);
+                row.setAttribute('data-status', demande.statut);
+                row.setAttribute('data-name', demande.nom_prenom);
+                row.setAttribute('data-phone', demande.telephone);
+                row.setAttribute('data-entity', demande.entite_accueil);
+                row.setAttribute('data-reason', demande.raison_entree);
+                row.setAttribute('data-idcard', demande.piece_identite);
+                row.setAttribute('data-start', demande.date_debut);
+                row.setAttribute('data-end', demande.date_fin);
+                row.setAttribute('data-created-at', demande.created_at);
+
+                const statusClass = demande.statut === 'en attente' ? 'status-pending' : 
+                                     demande.statut === 'approuve' ? 'status-approved' : 
+                                     'status-rejected';
+                const statusLabel = demande.statut === 'en attente' ? 'En attente' : 
+                                    demande.statut === 'approuve' ? 'Approuvée' : 
+                                    'Refusée';
+
+                let actionsHtml = `<button class="btn-action btn-view" onclick="viewDetails(${demande.id})">Voir</button>`;
+                
+                if (demande.statut === 'en attente') {
+                    actionsHtml = `
+                        <form method="POST" action="/admin/demande/${demande.id}/status" style="display:inline;">
+                            <input type="hidden" name="statut" value="approved">
+                            <button class="btn-action btn-approve" type="submit">✓ Approuver</button>
+                        </form>
+                        <form method="POST" action="/admin/demande/${demande.id}/status" style="display:inline;">
+                            <input type="hidden" name="statut" value="rejected">
+                            <input type="hidden" name="motif_refus" value="Refusée par l'administration">
+                            <button class="btn-action btn-reject" type="submit">✕ Refuser</button>
+                        </form>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <td><div class="req-num">#${demande.id}</div></td>
+                    <td><div class="name">${escapeHtml(demande.nom_prenom || '-')}</div></td>
+                    <td>${escapeHtml(demande.telephone || '-')}</td>
+                    <td><span class="type-tag">${escapeHtml(demande.type || '-')}</span></td>
+                    <td>${escapeHtml(demande.entite_accueil || '-')}</td>
+                    <td>${escapeHtml(demande.raison_entree || '-')}</td>
+                    <td>${escapeHtml(demande.piece_identite || '-')}</td>
+                    <td><div class="date-range">${demande.date_debut || '-'} <span>→</span> ${demande.date_fin || '-'}</div></td>
+                    <td>${demande.created_at ? demande.created_at.substring(0, 10) : '-'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+                    <td><div class="actions">${actionsHtml}</div></td>
+                `;
+            });
+            
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            
+            updateRowCount();
+        }
+
+        // View details via AJAX
+        async function viewDetails(id) {
+            try {
+                const response = await fetch(`/api/demande/${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const demande = result.data;
+                    const modalContent = document.getElementById('modalContent');
+                    modalContent.innerHTML = `
+                        <div class="detail-item">
+                            <div class="detail-label">Numéro de demande</div>
+                            <div class="detail-value mono">#${demande.id}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Type</div>
+                            <div class="detail-value">${escapeHtml(demande.type || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Entité d'accueil</div>
+                            <div class="detail-value">${escapeHtml(demande.entite_accueil || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Raison d'entrée</div>
+                            <div class="detail-value">${escapeHtml(demande.raison_entree || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Nom et Prénom</div>
+                            <div class="detail-value">${escapeHtml(demande.nom_prenom || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Téléphone</div>
+                            <div class="detail-value">${escapeHtml(demande.telephone || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Pièce d'identité</div>
+                            <div class="detail-value">${escapeHtml(demande.piece_identite || '-')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Date début</div>
+                            <div class="detail-value">${demande.date_debut || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Date fin</div>
+                            <div class="detail-value">${demande.date_fin || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Créé le</div>
+                            <div class="detail-value">${demande.created_at || '-'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Statut</div>
+                            <div class="detail-value">
+                                <span class="status-badge ${demande.statut === 'en attente' ? 'status-pending' : demande.statut === 'approuve' ? 'status-approved' : 'status-rejected'}">
+                                    ${demande.statut === 'en attente' ? 'En attente' : demande.statut === 'approuve' ? 'Approuvée' : 'Refusée'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+
+                    // Add action buttons if status is pending
+                    if (demande.statut === 'en attente') {
+                        modalContent.innerHTML += `
+                            <div class="modal-actions">
+                                <form method="POST" action="/admin/demande/${demande.id}/status" style="flex:1;">
+                                    <input type="hidden" name="statut" value="approved">
+                                    <button class="btn-action btn-approve" type="submit" style="width:100%;">✓ Approuver</button>
+                                </form>
+                                <form method="POST" action="/admin/demande/${demande.id}/status" style="flex:1;">
+                                    <input type="hidden" name="statut" value="rejected">
+                                    <input type="hidden" name="motif_refus" value="Refusée par l'administration">
+                                    <button class="btn-action btn-reject" type="submit" style="width:100%;">✕ Refuser</button>
+                                </form>
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('modalOverlay').classList.add('open');
+                } else {
+                    showError(result.error);
+                }
+            } catch (error) {
+                console.error('Error loading details:', error);
+                showError('Erreur de chargement des détails');
+            }
+        }
+
+        // Filter table
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            filteredDemandes = allDemandes.filter(demande => {
+                const searchText = `${demande.id} ${demande.nom_prenom} ${demande.telephone}`.toLowerCase();
+                const matchesSearch = !searchTerm || searchText.includes(searchTerm);
+                const matchesType = !typeFilter || demande.type === typeFilter;
+                
+                let matchesStatus = true;
+                if (statusFilter === 'pending') {
+                    matchesStatus = demande.statut === 'en attente';
+                } else if (statusFilter === 'approved') {
+                    matchesStatus = demande.statut === 'approuve';
+                } else if (statusFilter === 'rejected') {
+                    matchesStatus = demande.statut === 'rejete';
+                }
+                
+                return matchesSearch && matchesType && matchesStatus;
+            });
+            
+            renderTable();
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = filteredDemandes.length;
+            const pending = filteredDemandes.filter(d => d.statut === 'en attente').length;
+            const approved = filteredDemandes.filter(d => d.statut === 'approuve').length;
+            const rejected = filteredDemandes.filter(d => d.statut === 'rejete').length;
+            
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('pendingCount').innerText = pending;
+            document.getElementById('approvedCount').innerText = approved;
+            document.getElementById('rejectedCount').innerText = rejected;
+        }
+
+        // Update row count display
+        function updateRowCount() {
+            const count = filteredDemandes.length;
+            document.getElementById('rowCount').innerText = `${count} demande${count !== 1 ? 's' : ''}`;
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (filteredDemandes.length === 0) {
+                alert('Aucune donnée à exporter');
+                return;
+            }
+            
+            const headers = ['ID', 'Nom et Prénom', 'Téléphone', 'Type', 'Entité d\'accueil', 'Raison d\'entrée', 'Pièce d\'identité', 'Date début', 'Date fin'];
+            const rows = [headers];
+            
+            filteredDemandes.forEach(demande => {
+                rows.push([
+                    demande.id,
+                    demande.nom_prenom,
+                    demande.telephone,
+                    demande.type,
+                    demande.entite_accueil,
+                    demande.raison_entree,
+                    demande.piece_identite,
+                    demande.date_debut,
+                    demande.date_fin
+                ]);
+            });
+            
+            const csvContent = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `demandes_export_${new Date().toISOString().slice(0,19)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show error message
+        function showError(message) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('emptyState').innerHTML = `
+                <div class="empty-icon">⚠️</div>
+                <h3>Erreur</h3>
+                <p>${message}</p>
+            `;
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('open');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modalOverlay').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDemandes();
+        });
+    </script>
+
+</body>
+
+</html>

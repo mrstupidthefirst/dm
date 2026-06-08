@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Utilisateur</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; color: #16203d; }
+        .top { background: #0f1f3d; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .top a { color: #e8a020; text-decoration: none; }
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 18px; }
+        .panel { background: #fff; border-radius: 8px; padding: 18px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        input, select { width: 100%; padding: 10px; margin: 6px 0 12px; border-radius: 5px; border: 1px solid #cfd7e6; }
+        button { background: #1a3a6e; color: #fff; border: none; border-radius: 5px; padding: 10px 14px; cursor: pointer; }
+        .flash { background: #e8f7ea; color: #1a6b3f; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #e2e7f0; text-align: left; padding: 9px; font-size: 14px; }
+        th { background: #f0f4fb; }
+        .st-en_attente { color: #9a6a00; font-weight: bold; }
+        .st-approuve { color: #0d7a40; font-weight: bold; }
+        .st-rejete { color: #b71f1f; font-weight: bold; }
+        .card-link { color: #1a3a6e; font-weight: bold; text-decoration: none; }
+        @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="top">
+    <div>Utilisateur: {{ username }}</div>
+    <a href="{{ url_for('logout') }}">Se deconnecter</a>
+</div>
+
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="grid">
+        <div class="panel">
+            <h2>Nouvelle Demande d'Entree</h2>
+            <form method="POST" action="{{ url_for('user_dashboard') }}">
+                <label>Type</label>
+                <select name="type_val" required>
+                    <option value="">Choisir</option>
+                    <option value="personne_physique">Personne physique</option>
+                    <option value="personne_morale">Personne morale</option>
+                    <option value="transporteur">Transporteur</option>
+                    <option value="tour_operateur">Tour operateur</option>
+                </select>
+
+                <label>Entite d'accueil</label>
+                <select name="entite_accueil" required>
+                    <option value="">Choisir</option>
+                    <option value="terminal1">Terminal 1</option>
+                    <option value="terminal2">Terminal 2</option>
+                    <option value="douanes">Douanes</option>
+                    <option value="transitaire">Transitaire</option>
+                </select>
+
+                <label>Raison d'entree</label>
+                <input name="raison_entree" required>
+
+                <label>Nom et Prenom</label>
+                <input name="nom_prenom" required>
+
+                <label>Telephone</label>
+                <input name="telephone" required>
+
+                <label>Piece d'identite</label>
+                <input name="piece_identite" required>
+
+                <label>Date debut</label>
+                <input name="date_debut" type="date" required>
+
+                <label>Date fin</label>
+                <input name="date_fin" type="date" required>
+
+                <button type="submit">Envoyer la demande</button>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2>Mes Demandes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Entite</th>
+                        <th>Periode</th>
+                        <th>Statut</th>
+                        <th>Carte</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for d in demandes %}
+                    <tr>
+                        <td>{{ d[0] }}</td>
+                        <td>{{ d[2] }}</td>
+                        <td>{{ d[7] }} -> {{ d[8] }}</td>
+                        <td class="st-{{ d[9]|replace(' ', '_') }}">{{ d[9] }}</td>
+                        <td>
+                            {% if d[9] == 'approuve' %}
+                                <a class="card-link" href="{{ url_for('user_card', demande_id=d[0]) }}" target="_blank">Imprimer carte</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5">Aucune demande pour le moment.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if has_new_approval %}
+<script>
+    alert("Votre demande a ete approuvee. Vous pouvez maintenant imprimer votre carte avec QR code.");
+</script>
+{% endif %}
+</body>
+</html>
